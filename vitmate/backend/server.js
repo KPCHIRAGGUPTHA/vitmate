@@ -11,38 +11,48 @@ connectDB();
 const app = express();
 const server = http.createServer(app);
 
-// ✅ DEFINE ALLOWED ORIGINS
+// ✅ ALLOWED FRONTEND URLS
 const allowedOrigins = [
   'http://localhost:5173',
+  'https://vitmate-alpha.vercel.app',
   'https://vitmate-szmpdp18k-p-chirag-gupthas-projects.vercel.app'
 ];
 
-// ✅ SOCKET.IO FIX
-const io = new Server(server, {
-  cors: {
-    origin: allowedOrigins,
-    methods: ['GET', 'POST'],
-    credentials: true
-  }
-});
-
-// ✅ EXPRESS CORS FIX (IMPORTANT)
+// ✅ EXPRESS CORS FIX
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    // allow requests with no origin (like Postman)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('CORS not allowed'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
 
 app.use(express.json());
 
-// Routes
+// ✅ ROUTES
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/groups', require('./routes/groups'));
 app.use('/api/messages', require('./routes/messages'));
 
-// Health check
+// ✅ HEALTH CHECK
 app.get('/', (req, res) => {
   res.json({ status: '✅ VITmate API Running', version: '1.0.0' });
+});
+
+// ✅ SOCKET.IO CONFIG
+const io = new Server(server, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
 });
 
 // ── SOCKET.IO REAL-TIME CHAT ──────────────────────────────
@@ -116,7 +126,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// Start server
+// ✅ START SERVER
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
