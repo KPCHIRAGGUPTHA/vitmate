@@ -3,7 +3,7 @@ import axios from 'axios'
 
 const AuthContext = createContext()
 
-// ✅ FIXED API URL (NO localhost, NO /api)
+// ✅ Production backend URL
 const API = 'https://vitmate.onrender.com'
 
 export const AuthProvider = ({ children }) => {
@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
   const [token, setToken] = useState(localStorage.getItem('vitmate_token'))
 
-  // ✅ Set axios default header
+  // ✅ Set axios auth header
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token])
 
-  // ✅ Load user on mount
+  // ✅ Load user
   useEffect(() => {
     const loadUser = async () => {
       if (!token) {
@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const { data } = await axios.get(`${API}/me`) // adjust if needed
         setUser(data)
-      } catch (err) {
+      } catch {
         localStorage.removeItem('vitmate_token')
         setToken(null)
       } finally {
@@ -40,24 +40,41 @@ export const AuthProvider = ({ children }) => {
     loadUser()
   }, [token])
 
-  // ✅ REGISTER (FIXED ROUTE)
+  // ✅ REGISTER (FIXED FIELD NAMES)
   const register = async (formData) => {
-    const { data } = await axios.post(`${API}/register`, formData)
+    const payload = {
+      name: formData.name,
+      registerNumber: formData.regNo,   // 🔥 FIX HERE
+      branch: formData.branch,
+      year: formData.year,
+      rank: formData.rank,
+      password: formData.password
+    }
+
+    const { data } = await axios.post(`${API}/register`, payload)
+
     localStorage.setItem('vitmate_token', data.token)
     setToken(data.token)
     setUser(data)
+
     return data
   }
 
-  // ✅ LOGIN (FIXED ROUTE)
+  // ✅ LOGIN
   const login = async (regNo, password) => {
-    const { data } = await axios.post(`${API}/login`, { regNo, password })
+    const { data } = await axios.post(`${API}/login`, {
+      registerNumber: regNo,  // optional: match backend
+      password
+    })
+
     localStorage.setItem('vitmate_token', data.token)
     setToken(data.token)
     setUser(data)
+
     return data
   }
 
+  // ✅ LOGOUT
   const logout = () => {
     localStorage.removeItem('vitmate_token')
     setToken(null)
