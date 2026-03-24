@@ -3,38 +3,63 @@ const cors = require('cors');
 
 const app = express();
 
-// ✅ IMPORT ROUTES
+// =======================
+// 📦 IMPORT ROUTES
+// =======================
 const groupRoutes = require('./routes/groups');
 const messageRoutes = require('./routes/messages');
+const authRoutes = require('./routes/auth');
 
-// (optional if you add later)
-// const authRoutes = require('./routes/auth');
-
-// ✅ CORS
+// =======================
+// 🌐 CORS CONFIG
+// =======================
 app.use(cors({
   origin: [
     'https://vitmate-alpha.vercel.app',
     'http://localhost:3000'
   ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 
-// ✅ MIDDLEWARE
+// =======================
+// 🧠 MIDDLEWARE
+// =======================
 app.use(express.json());
 
-// ✅ TEST ROUTE
+// =======================
+// 🧪 TEST ROUTE
+// =======================
 app.get('/', (req, res) => {
   res.send('Server is running ✅');
 });
 
-// ✅ CONNECT ROUTES (🔥 MOST IMPORTANT)
+// =======================
+// 🔐 AUTH ROUTES
+// =======================
+app.use('/api/auth', authRoutes);
+
+// =======================
+// 👥 GROUP ROUTES
+// =======================
 app.use('/api/groups', groupRoutes);
+
+// =======================
+// 💬 MESSAGE ROUTES
+// =======================
 app.use('/api/messages', messageRoutes);
 
-// OPTIONAL (if you build auth properly)
-// app.use('/api/auth', authRoutes);
+// =======================
+// ❌ 404 HANDLER (OPTIONAL)
+// =======================
+app.use((req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
 
-// ✅ PORT
+// =======================
+// 🚀 START SERVER
+// =======================
 const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, () => {
