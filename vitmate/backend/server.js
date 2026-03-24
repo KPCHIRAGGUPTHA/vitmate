@@ -11,16 +11,28 @@ connectDB();
 const app = express();
 const server = http.createServer(app);
 
-// Socket.io setup
+// ✅ DEFINE ALLOWED ORIGINS
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://vitmate-szmpdp18k-p-chirag-gupthas-projects.vercel.app'
+];
+
+// ✅ SOCKET.IO FIX
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
-    methods: ['GET', 'POST']
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
+    credentials: true
   }
 });
 
-// Middleware
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
+// ✅ EXPRESS CORS FIX (IMPORTANT)
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
+
 app.use(express.json());
 
 // Routes
@@ -34,31 +46,27 @@ app.get('/', (req, res) => {
 });
 
 // ── SOCKET.IO REAL-TIME CHAT ──────────────────────────────
-const activeUsers = new Map(); // socketId -> { userId, groupId, name }
+const activeUsers = new Map();
 
 io.on('connection', (socket) => {
   console.log(`🔌 User connected: ${socket.id}`);
 
-  // Join group
   socket.on('joinGroup', ({ groupId, userId, name }) => {
     socket.join(groupId);
 
     activeUsers.set(socket.id, { userId, groupId, name });
 
-    // Send full online list to new user
     const onlineUsers = Array.from(activeUsers.values())
       .filter(user => user.groupId === groupId)
       .map(user => user.userId);
 
     socket.emit('onlineUsers', onlineUsers);
 
-    // Notify others user is online
     socket.to(groupId).emit('userOnline', { userId, name });
 
     console.log(`🟢 ${name} joined group ${groupId}`);
   });
 
-  // Leave group
   socket.on('leaveGroup', ({ groupId }) => {
     socket.leave(groupId);
 
@@ -74,12 +82,10 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Send message
   socket.on('sendMessage', ({ groupId, message }) => {
     io.to(groupId).emit('newMessage', message);
   });
 
-  // Typing indicator
   socket.on('typing', ({ groupId, name }) => {
     socket.to(groupId).emit('userTyping', { name });
   });
@@ -88,12 +94,10 @@ io.on('connection', (socket) => {
     socket.to(groupId).emit('userStopTyping');
   });
 
-  // Group updated (member join/leave)
   socket.on('groupUpdated', ({ groupId }) => {
     io.to(groupId).emit('refreshGroup', { groupId });
   });
 
-  // Disconnect
   socket.on('disconnect', () => {
     const user = activeUsers.get(socket.id);
 
