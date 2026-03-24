@@ -1,40 +1,44 @@
-
 import axios from 'axios'
 
 // ✅ BACKEND URL
 const API = 'https://vitmate.onrender.com'
 
+// ✅ CREATE AXIOS INSTANCE
+const api = axios.create({
+  baseURL: API
+})
+
+// ✅ ADD TOKEN TO EVERY REQUEST
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('vitmate_token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
 // =====================
 // 🔐 AUTH APIs
 // =====================
 
-// Register
 export const registerUser = (data) => {
-  return axios.post(`${API}/api/auth/register`, data)
+  return api.post('/api/auth/register', data)
 }
 
-// Login
 export const loginUser = (data) => {
-  return axios.post(`${API}/api/auth/login`, data)
-}
-
-// Get current user
-export const getMe = () => {
-  return axios.get(`${API}/api/auth/me`)
+  return api.post('/api/auth/login', data)
 }
 
 // =====================
 // 👥 GROUP APIs
 // =====================
 
-// Get all groups
 export const getGroups = () => {
-  return axios.get(`${API}/api/groups`)
+  return api.get('/api/groups')
 }
 
-// Create group
 export const createGroup = (form) => {
-  return axios.post(`${API}/api/groups`, {
+  return api.post('/api/groups', {
     title: form.title,
     roomType: form.roomType,
     block: form.block,
@@ -42,19 +46,16 @@ export const createGroup = (form) => {
   })
 }
 
-// Join group
 export const joinGroup = (groupId) => {
-  return axios.post(`${API}/api/groups/${groupId}/join`)
+  return api.post(`/api/groups/${groupId}/join`)
 }
 
-// Leave group
 export const leaveGroup = (groupId) => {
-  return axios.post(`${API}/api/groups/${groupId}/leave`)
+  return api.post(`/api/groups/${groupId}/leave`)
 }
 
-// Get single group
 export const getGroup = (groupId) => {
-  return axios.get(`${API}/api/groups/${groupId}`)
+  return api.get(`/api/groups/${groupId}`)
 }
 
 // =====================
@@ -62,9 +63,9 @@ export const getGroup = (groupId) => {
 // =====================
 
 export const getMessages = (groupId) => {
-  return axios.get(`${API}/api/messages/${groupId}`)
+  return api.get(`/api/messages/${groupId}`)
 }
 
 export const sendMessage = (groupId, text) => {
-  return axios.post(`${API}/api/messages/${groupId}`, { text })
+  return api.post(`/api/messages/${groupId}`, { text })
 }
