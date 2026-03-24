@@ -1,14 +1,11 @@
 import axios from 'axios'
 
-// ✅ BACKEND URL
-const API = 'https://vitmate.onrender.com'
+const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
-// ✅ CREATE AXIOS INSTANCE
-const api = axios.create({
-  baseURL: API
-})
+// Create a dedicated axios instance for all API calls
+const api = axios.create({ baseURL: API })
 
-// ✅ ADD TOKEN TO EVERY REQUEST
+// Interceptor: attach token from localStorage on EVERY request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('vitmate_token')
   if (token) {
@@ -17,55 +14,17 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// =====================
-// 🔐 AUTH APIs
-// =====================
+// Groups
+export const getGroups = (filters = {}) => api.get('/groups', { params: filters })
+export const getGroup = (id) => api.get(`/groups/${id}`)
+export const createGroup = (data) => api.post('/groups', data)
+export const joinGroup = (id) => api.post(`/groups/${id}/join`)
+export const leaveGroup = (id) => api.post(`/groups/${id}/leave`)
+export const deleteGroup = (id) => api.delete(`/groups/${id}`)
 
-export const registerUser = (data) => {
-  return api.post('/api/auth/register', data)
-}
+// Messages
+export const getMessages = (groupId) => api.get(`/messages/${groupId}`)
+export const sendMessage = (groupId, text) => api.post(`/messages/${groupId}`, { text })
 
-export const loginUser = (data) => {
-  return api.post('/api/auth/login', data)
-}
-
-// =====================
-// 👥 GROUP APIs
-// =====================
-
-export const getGroups = () => {
-  return api.get('/api/groups')
-}
-
-export const createGroup = (form) => {
-  return api.post('/api/groups', {
-    title: form.title,
-    roomType: form.roomType,
-    block: form.block,
-    description: form.description
-  })
-}
-
-export const joinGroup = (groupId) => {
-  return api.post(`/api/groups/${groupId}/join`)
-}
-
-export const leaveGroup = (groupId) => {
-  return api.post(`/api/groups/${groupId}/leave`)
-}
-
-export const getGroup = (groupId) => {
-  return api.get(`/api/groups/${groupId}`)
-}
-
-// =====================
-// 💬 MESSAGE APIs
-// =====================
-
-export const getMessages = (groupId) => {
-  return api.get(`/api/messages/${groupId}`)
-}
-
-export const sendMessage = (groupId, text) => {
-  return api.post(`/api/messages/${groupId}`, { text })
-}
+// Auth
+export const updateProfile = (data) => api.put('/auth/profile', data)
