@@ -5,6 +5,13 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Chat from './pages/Chat'
 import Navbar from './components/Navbar'
+import axios from 'axios'
+
+// ✅ ADD THIS (VERY IMPORTANT)
+const token = localStorage.getItem('vitmate_token')
+if (token) {
+  axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+}
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth()
@@ -23,11 +30,18 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/login"    element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
-          <Route path="/"         element={<PrivateRoute><><Navbar /><Dashboard /></></PrivateRoute>} />
+          <Route path="/" element={
+            <PrivateRoute>
+              <>
+                <Navbar />
+                <Dashboard />
+              </>
+            </PrivateRoute>
+          } />
           <Route path="/chat/:id" element={<PrivateRoute><Chat /></PrivateRoute>} />
-          <Route path="*"         element={<Navigate to="/" />} />
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
@@ -36,8 +50,13 @@ export default function App() {
 
 const styles = {
   loader: {
-    minHeight: '100vh', display: 'flex', alignItems: 'center',
-    justifyContent: 'center', background: '#0a0e1a',
-    color: '#c9a84c', fontFamily: 'sans-serif', fontSize: '1.2rem'
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: '#0a0e1a',
+    color: '#c9a84c',
+    fontFamily: 'sans-serif',
+    fontSize: '1.2rem'
   }
 }

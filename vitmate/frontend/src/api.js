@@ -1,3 +1,4 @@
+
 import axios from 'axios'
 
 // ✅ BACKEND URL
@@ -27,20 +28,18 @@ export const getMe = () => {
 // =====================
 
 // Get all groups
-export const getGroups = (params) => {
-  return axios.get(`${API}/api/groups`, { params })
+export const getGroups = () => {
+  return axios.get(`${API}/api/groups`)
 }
 
 // Create group
 export const createGroup = (form) => {
-  const payload = {
+  return axios.post(`${API}/api/groups`, {
     title: form.title,
     roomType: form.roomType,
-    preferredBlock: form.block,
+    block: form.block,
     description: form.description
-  }
-
-  return axios.post(`${API}/api/groups`, payload)
+  })
 }
 
 // Join group
@@ -59,17 +58,13 @@ export const getGroup = (groupId) => {
 }
 
 // =====================
-// 💬 CHAT / MESSAGE APIs
+// 💬 MESSAGE APIs
 // =====================
 
-// Get messages
 export const getMessages = (groupId) => {
   return axios.get(`${API}/api/messages/${groupId}`)
 }
 
-// Send message
-export const sendMessage = (groupId, message) => {
-  return axios.post(`${API}/api/messages/${groupId}`, {
-    message
-  })
+export const sendMessage = (groupId, text) => {
+  return axios.post(`${API}/api/messages/${groupId}`, { text })
 }

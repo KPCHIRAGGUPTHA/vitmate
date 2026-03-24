@@ -1,94 +1,56 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState } from 'react'
 import axios from 'axios'
 
 const AuthContext = createContext()
 
-// ✅ Production backend URL
 const API = 'https://vitmate.onrender.com'
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
   const [token, setToken] = useState(localStorage.getItem('vitmate_token'))
 
-  // ✅ Set axios auth header
-  useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-    } else {
-      delete axios.defaults.headers.common['Authorization']
-    }
-  }, [token])
-
-  // ✅ Load user
-  useEffect(() => {
-    const loadUser = async () => {
-      if (!token) {
-        setLoading(false)
-        return
-      }
-      try {
-        const { data } = await axios.get(`${API}/me`) // adjust if needed
-        setUser(data)
-      } catch {
-        localStorage.removeItem('vitmate_token')
-        setToken(null)
-      } finally {
-        setLoading(false)
-      }
-    }
-    loadUser()
-  }, [token])
-
-  // ✅ REGISTER (FIXED FIELD NAMES)
+  // ✅ REGISTER
   const register = async (formData) => {
     const payload = {
       name: formData.name,
-      registerNumber: formData.regNo,   // 🔥 FIX HERE
+      registerNumber: formData.regNo,
       branch: formData.branch,
       year: formData.year,
       rank: formData.rank,
       password: formData.password
     }
 
-    const { data } = await axios.post(`${API}/register`, payload)
+    const { data } = await axios.post(`${API}/api/auth/register`, payload)
 
     localStorage.setItem('vitmate_token', data.token)
     setToken(data.token)
-    setUser(data)
+    setUser(data.user)
 
     return data
   }
 
   // ✅ LOGIN
   const login = async (regNo, password) => {
-    const { data } = await axios.post(`${API}/login`, {
-      registerNumber: regNo,  // optional: match backend
+    const { data } = await axios.post(`${API}/api/auth/login`, {
+      registerNumber: regNo,
       password
     })
 
     localStorage.setItem('vitmate_token', data.token)
     setToken(data.token)
-    setUser(data)
+    setUser(data.user)
 
     return data
   }
 
-  // ✅ LOGOUT
   const logout = () => {
     localStorage.removeItem('vitmate_token')
     setToken(null)
     setUser(null)
   }
 
-  const updateUser = (updates) => {
-    setUser(prev => ({ ...prev, ...updates }))
-  }
-
   return (
-    <AuthContext.Provider
-      value={{ user, loading, token, register, login, logout, updateUser }}
-    >
+    <AuthContext.Provider value={{ user, token, register, login, logout }}>
       {children}
     </AuthContext.Provider>
   )
