@@ -3,42 +3,38 @@ const cors = require('cors');
 
 const app = express();
 
-// ✅ CORS FIX (MOST IMPORTANT)
+// ✅ IMPORT ROUTES
+const groupRoutes = require('./routes/groups');
+const messageRoutes = require('./routes/messages');
+
+// (optional if you add later)
+// const authRoutes = require('./routes/auth');
+
+// ✅ CORS
 app.use(cors({
   origin: [
-    'https://vitmate-alpha.vercel.app', // your frontend
-    'http://localhost:3000'             // for local testing
+    'https://vitmate-alpha.vercel.app',
+    'http://localhost:3000'
   ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type'],
   credentials: true
 }));
 
 // ✅ MIDDLEWARE
 app.use(express.json());
 
-// ✅ TEST ROUTE (check if backend works)
+// ✅ TEST ROUTE
 app.get('/', (req, res) => {
   res.send('Server is running ✅');
 });
 
-// ✅ REGISTER ROUTE
-app.post('/register', (req, res) => {
-  const { name, registerNumber, branch, year, rank, password } = req.body;
+// ✅ CONNECT ROUTES (🔥 MOST IMPORTANT)
+app.use('/api/groups', groupRoutes);
+app.use('/api/messages', messageRoutes);
 
-  // simple validation
-  if (!name || !registerNumber || !password) {
-    return res.status(400).json({ message: 'Missing fields' });
-  }
+// OPTIONAL (if you build auth properly)
+// app.use('/api/auth', authRoutes);
 
-  // fake success (replace with DB later)
-  res.status(200).json({
-    message: 'User registered successfully ✅',
-    user: { name, registerNumber }
-  });
-});
-
-// ✅ PORT (VERY IMPORTANT FOR RENDER)
+// ✅ PORT
 const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, () => {
