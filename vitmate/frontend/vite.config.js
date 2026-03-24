@@ -1,15 +1,31 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+const handleRegister = async () => {
+  try {
+    const response = await fetch('https://vitmate.onrender.com/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name,
+        registerNumber,
+        branch,
+        year,
+        rank,
+        password
+      })
+    });
 
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    proxy: {
-      '/api': 'http://localhost:5000',
-      '/socket.io': {
-        target: 'http://localhost:5000',
-        ws: true
-      }
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.message || "Registration failed");
+      return;
     }
+
+    alert("Registration successful ✅");
+
+  } catch (error) {
+    console.error(error);
+    alert("Something went wrong ❌");
   }
-})
+};
